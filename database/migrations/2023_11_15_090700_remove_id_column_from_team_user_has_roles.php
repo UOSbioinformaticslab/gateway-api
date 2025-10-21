@@ -15,8 +15,8 @@ return new class () extends Migration {
             $table->bigInteger('team_has_user_id')->unsigned();
             $table->bigInteger('role_id')->unsigned();
 
-            $table->foreign('team_has_user_id', 'team_has_user_id2_fk')->references('id')->on('team_has_users');
-            $table->foreign('role_id', 'role_id_fk')->references('id')->on('roles');
+            $table->foreign('team_has_user_id', 'team_has_user_id_tmp_fk')->references('id')->on('team_has_users');
+            $table->foreign('role_id', 'role_id_tmp_fk')->references('id')->on('roles');
         });
 
         // Copy the data from the original table to the new table
