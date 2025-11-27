@@ -102,14 +102,16 @@ class UserController extends Controller
                 } elseif ($mini) {
                     //temporary force to get all users but with masked email
                     // - will not be needed in the future as can just use the above if block
-                    $users = [
-                        "data" => User::select('id', 'name', 'email')
-                                    ->get()
-                                    ->map(function ($user) {
-                                        $user->email = $this->maskEmail($user->email);
-                                        return $user;
-                                    })
-                    ];
+                    $users = DB::table('users')
+                        ->select('id', 'name', 'email')
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($user) {
+                            $user->email = $this->maskEmail($user->email);
+                            return $user;
+                        });
+
+                    $users = ['data' => $users];
                 } elseif ($userIsAdmin) {
                     $users = User::with(['roles', 'roles.permissions', 'teams', 'notifications'])->paginate($perPage, ['*'], 'page');
                 } else {
@@ -521,7 +523,7 @@ class UserController extends Controller
                 }
 
                 if (array_key_exists('preferred_email', $input)) {
-                    $array['preferred_email'] = $user->provider === 'open-athens' ? $user->preferred_email : $input['preferred_email'];
+                    $array['preferred_email'] = $input['preferred_email'];
                 }
 
                 $arrayUserNotification = array_key_exists('notifications', $input) ?

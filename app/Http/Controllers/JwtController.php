@@ -33,7 +33,12 @@ class JwtController extends Controller
         ];
         $this->payload = [];
         $this->jwt = '';
-        $this->secretKey = (string) env('JWT_SECRET');
+        $this->secretKey = (string) config('jwt.secret');
+
+        // Validate that JWT secret is set
+        if (empty($this->secretKey) || $this->secretKey === '300') {
+            throw new Exception('JWT_SECRET environment variable is not set. Please set it in your .env file with a secure random string.');
+        }
 
         $this->config = Configuration::forSymmetricSigner(
             new Sha256(),
@@ -42,8 +47,8 @@ class JwtController extends Controller
 
         $this->config->setValidationConstraints(
             new Constraint\SignedWith($this->config->signer(), $this->config->verificationKey()),
-            new Constraint\IssuedBy((string)env('APP_URL')),
-            new Constraint\PermittedFor((string)env('APP_URL')),
+            new Constraint\IssuedBy((string)config('app.url')),
+            new Constraint\PermittedFor((string)config('app.url')),
             new Constraint\StrictValidAt(SystemClock::fromUTC()) // Validates 'exp', 'nbf', 'iat' claims
         );
     }
@@ -63,7 +68,7 @@ class JwtController extends Controller
     {
         try {
             $currentTime = CarbonImmutable::now();
-            $expireTime = $currentTime->addSeconds(env('JWT_EXPIRATION'));
+            $expireTime = $currentTime->addSeconds(intval(config('jwt.expiration')));
 
             $user = User::with('workgroups:id,name,active')->find($userId);
             $user->workgroups->makeHidden('pivot');
@@ -76,9 +81,9 @@ class JwtController extends Controller
             }
 
             $token = $this->config->builder()
-                ->issuedBy((string)env('APP_URL')) // iss claim
-                ->permittedFor((string)env('APP_URL')) // aud claim
-                ->relatedTo((string)env('APP_NAME')) // aud claim
+                ->issuedBy((string)config('app.url')) // iss claim
+                ->permittedFor((string)config('app.url')) // aud claim
+                ->relatedTo((string)config('app.name')) // aud claim
                 ->identifiedBy(md5(microtime())) // jti claim
                 ->issuedAt($currentTime) // iat claim
                 ->canOnlyBeUsedAfter($currentTime) // nbf claim

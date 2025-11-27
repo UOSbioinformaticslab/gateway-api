@@ -163,9 +163,9 @@ class SearchController extends Controller
             $sortDirection = array_key_exists('1', $tmp) ? $tmp[1] : 'asc';
 
             $aggs = Filter::where('type', 'dataset')->where('enabled', 1)->get()->toArray();
-            $input['aggs'] = $aggs;
+            // $input['aggs'] = $aggs; // Commented out to prevent empty hits from search service
 
-            $urlString = env('SEARCH_SERVICE_URL', 'http://localhost:8003') . '/search/datasets';
+            $urlString = config('gateway.search_service_url') . '/search/datasets';
             $response = Http::withHeaders($loggingContext)->post($urlString, $input);
 
             if (!$response->successful()) {
@@ -175,18 +175,30 @@ class SearchController extends Controller
             }
             $response = $response->json();
 
-            if (
-                !isset($response['hits']) || !is_array($response['hits']) ||
-                !isset($response['hits']['hits']) || !is_array($response['hits']['hits']) ||
-                !isset($response['hits']['total']['value'])
-            ) {
+            // Handle various response formats more robustly
+            $hits = $response['hits'] ?? [];
+            $hitsArray = is_array($hits) ? ($hits['hits'] ?? []) : [];
+            $datasetsArray = is_array($hitsArray) ? $hitsArray : [];
+            
+            // Handle total in various formats (object with 'value' or direct number)
+            $total = $hits['total'] ?? null;
+            if (is_array($total) && isset($total['value'])) {
+                $totalResults = (int) $total['value'];
+            } elseif (is_numeric($total)) {
+                $totalResults = (int) $total;
+            } else {
+                $totalResults = count($datasetsArray); // Fallback to count
+            }
+            
+            // Ensure aggregations exists
+            $aggregations = $response['aggregations'] ?? [];
+
+            if (empty($datasetsArray) && $totalResults === 0) {
+                // Only return 404 if we truly have no results, not due to parsing issues
                 return response()->json([
                     'message' => 'Hits not being properly returned by the search service'
                 ], 404);
             }
-
-            $datasetsArray = $response['hits']['hits'];
-            $totalResults = $response['hits']['total']['value'];
             $matchedIds = [];
             // join to created at from DB
             foreach (array_values($datasetsArray) as $i => $d) {
@@ -281,7 +293,7 @@ class SearchController extends Controller
             unset($datasetsArray);
 
             $aggs = collect([
-                'aggregations' => $response['aggregations'],
+                'aggregations' => $aggregations,
                 'elastic_total' => $totalResults,
                 'ids' => $matchedIds,
             ]);
@@ -357,7 +369,7 @@ class SearchController extends Controller
             $loggingContext['method_name'] = class_basename($this) . '@' . __FUNCTION__;
 
             $id = (string)$request['id'];
-            $urlString = env('SEARCH_SERVICE_URL', 'http://localhost:8003') . '/similar/datasets';
+            $urlString = config('gateway.search_service_url') . '/similar/datasets';
             $response = Http::withHeaders($loggingContext)->post($urlString, ['id' => $id]);
 
             $datasetsArray = $response['hits']['hits'];
@@ -505,7 +517,7 @@ class SearchController extends Controller
             $input['aggs'] = $aggs;
 
             try {
-                $urlString = env('SEARCH_SERVICE_URL', 'http://localhost:8003') . '/search/tools';
+                $urlString = config('gateway.search_service_url') . '/search/tools';
                 $response = Http::withHeaders($loggingContext)->post($urlString, $input);
             } catch (ConnectionException $e) {
                 Auditor::log([
@@ -745,7 +757,7 @@ class SearchController extends Controller
             $aggs = Filter::where('type', 'collection')->get()->toArray();
             $input['aggs'] = $aggs;
 
-            $urlString = env('SEARCH_SERVICE_URL', 'http://localhost:8003') . '/search/collections';
+            $urlString = config('gateway.search_service_url') . '/search/collections';
             $response = Http::withHeaders($loggingContext)->post($urlString, $input);
 
             $collectionArray = $response['hits']['hits'];
@@ -920,7 +932,7 @@ class SearchController extends Controller
         $input['aggs'] = $aggs;
 
         try {
-            $urlString = env('SEARCH_SERVICE_URL', 'http://localhost:8003') . '/search/dur';
+            $urlString = config('gateway.search_service_url') . '/search/dur';
             $response = Http::withHeaders($loggingContext)->post($urlString, $input);
         } catch (ConnectionException $e) {
             Auditor::log([
@@ -1151,7 +1163,7 @@ class SearchController extends Controller
                 $input['aggs'] = $aggs;
 
                 try {
-                    $urlString = env('SEARCH_SERVICE_URL', 'http://localhost:8003') . '/search/publications';
+                    $urlString = config('gateway.search_service_url') . '/search/publications';
                     $response = Http::withHeaders($loggingContext)->post($urlString, $input);
                 } catch (ConnectionException $e) {
                     Auditor::log([
@@ -1219,12 +1231,12 @@ class SearchController extends Controller
                 }
             } else {
                 if (isset($input['query']) && is_array($input['query'])) {
-                    $urlString = env('SEARCH_SERVICE_URL', 'http://localhost:8003') . '/search/federated_papers/field_search/array';
+                    $urlString = config('gateway.search_service_url') . '/search/federated_papers/field_search/array';
                 } else {
                     if (isset($input['query']) && $this->isDoi($input['query'])) {
-                        $urlString = env('SEARCH_SERVICE_URL', 'http://localhost:8003') . '/search/federated_papers/doi';
+                        $urlString = config('gateway.search_service_url') . '/search/federated_papers/doi';
                     } else {
-                        $urlString = env('SEARCH_SERVICE_URL', 'http://localhost:8003') . '/search/federated_papers/field_search';
+                        $urlString = config('gateway.search_service_url') . '/search/federated_papers/field_search';
                     }
                 }
                 $input['field'] = ['TITLE', 'ABSTRACT', 'METHODS'];
@@ -1439,7 +1451,7 @@ class SearchController extends Controller
 
             $input = $request->all();
 
-            $urlString = env('SEARCH_SERVICE_URL', 'http://localhost:8003') . '/search/federated_papers/doi';
+            $urlString = config('gateway.search_service_url') . '/search/federated_papers/doi';
             $response = Http::withHeaders($loggingContext)->post($urlString, $input);
 
             if (!isset($response['resultList']['result']) || !is_array($response['resultList']['result'])) {
@@ -1586,7 +1598,7 @@ class SearchController extends Controller
             $aggs = Filter::where('type', 'dataProviderColl')->get()->toArray();
             $input['aggs'] = $aggs;
 
-            $urlString = env('SEARCH_SERVICE_URL', 'http://localhost:8003') . '/search/data_custodian_networks';
+            $urlString = config('gateway.search_service_url') . '/search/data_custodian_networks';
             $response = Http::withHeaders($loggingContext)->post($urlString, $input);
 
             $dataCustodianNetworksArray = $response['hits']['hits'];
@@ -1762,7 +1774,7 @@ class SearchController extends Controller
             $aggs = Filter::where('type', 'dataProvider')->get()->toArray();
             $input['aggs'] = $aggs;
 
-            $urlString = env('SEARCH_SERVICE_URL', 'http://localhost:8003') . '/search/data_providers';
+            $urlString = config('gateway.search_service_url') . '/search/data_providers';
             $response = Http::withHeaders($loggingContext)->post($urlString, $input);
 
             $dataCustodianArray = $response['hits']['hits'];
