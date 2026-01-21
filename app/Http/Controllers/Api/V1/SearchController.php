@@ -364,10 +364,11 @@ class SearchController extends Controller
      */
     public function similarDatasets(Request $request): JsonResponse
     {
-        try {
-            $loggingContext = $this->getLoggingContext($request);
-            $loggingContext['method_name'] = class_basename($this) . '@' . __FUNCTION__;
+        $loggingContext = $this->getLoggingContext($request);
+        $loggingContext['method_name'] = class_basename($this) . '@' . __FUNCTION__;
 
+        try {
+           
             $id = (string)$request['id'];
             $urlString = config('gateway.search_service_url') . '/similar/datasets';
             $response = Http::withHeaders($loggingContext)->post($urlString, ['id' => $id]);
@@ -743,10 +744,11 @@ class SearchController extends Controller
      */
     public function collections(Search $request): JsonResponse
     {
-        try {
-            $loggingContext = $this->getLoggingContext($request);
-            $loggingContext['method_name'] = class_basename($this) . '@' . __FUNCTION__;
+        $loggingContext = $this->getLoggingContext($request);
+        $loggingContext['method_name'] = class_basename($this) . '@' . __FUNCTION__;
 
+        try {
+          
             $input = $request->all();
 
             $sort = $request->query('sort', 'score:desc');
@@ -1445,10 +1447,11 @@ class SearchController extends Controller
      */
     public function doiSearch(DOISearch $request): Response | JsonResponse
     {
-        try {
-            $loggingContext = $this->getLoggingContext($request);
-            $loggingContext['method_name'] = class_basename($this) . '@' . __FUNCTION__;
+        $loggingContext = $this->getLoggingContext($request);
+        $loggingContext['method_name'] = class_basename($this) . '@' . __FUNCTION__;
 
+        try {
+         
             $input = $request->all();
 
             $urlString = config('gateway.search_service_url') . '/search/federated_papers/doi';

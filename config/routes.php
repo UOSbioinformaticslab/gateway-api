@@ -147,6 +147,110 @@ return [
             'id' => '[0-9]+',
         ],
     ],
+     [
+        'name' => 'widgets',
+        'method' => 'get',
+        'path' => '/teams/{teamId}/widgets',
+        'methodController' => 'TeamWidgetController@get',
+        'namespaceController' => 'App\Http\Controllers\Api\V1',
+        'middleware' => [
+            'jwt.verify',
+            'check.access:permissions,widgets.read',
+
+        ],
+       'constraint' => [
+            'teamId' => '[0-9]+',
+        ],
+    ],
+    [
+        'name' => 'widget',
+        'method' => 'get',
+        'path' => '/teams/{teamId}/widgets/{id}',
+        'methodController' => 'TeamWidgetController@retrieve',
+        'namespaceController' => 'App\Http\Controllers\Api\V1',
+        'middleware' => [
+            'jwt.verify',
+            'check.access:permissions,widgets.read',
+
+        ],
+       'constraint' => [
+          'teamId' => '[0-9]+',
+            'id' => '[0-9]+',
+        ],
+    ],
+    [
+        'name' => 'widget',
+        'method' => 'get',
+        'path' => '/teams/{teamId}/widgets/{id}/data',
+        'methodController' => 'TeamWidgetController@retrieveData',
+        'namespaceController' => 'App\Http\Controllers\Api\V1',
+        'middleware' => [],
+       'constraint' => [
+          'teamId' => '[0-9]+',
+            'id' => '[0-9]+',
+        ],
+    ],
+    [
+        'name' => 'widgets-data',
+        'method' => 'get',
+        'path' => '/teams/{teamId}/widgets/data',
+        'methodController' => 'TeamWidgetController@getWidgetData',
+        'namespaceController' => 'App\Http\Controllers\Api\V1',
+        'middleware' => [
+            'jwt.verify',
+            'check.access:permissions,widgets.read',
+        ],
+        'constraint' => [
+            'teamId' => '[0-9]+',
+        ],
+    ],
+    [
+        'name' => 'create_widget',
+        'method' => 'post',
+        'path' => '/teams/{teamId}/widgets',
+        'methodController' => 'TeamWidgetController@store',
+        'namespaceController' => 'App\Http\Controllers\Api\V1',
+        'middleware' => [
+            'jwt.verify',
+            'check.access:permissions,widgets.create',
+        ],
+        'constraint' => [
+            'teamId' => '[0-9]+',
+        ],
+    ],
+    [
+        'name' => 'update_widget',
+        'method' => 'patch',
+        'path' => '/teams/{teamId}/widgets/{id}',
+        'methodController' => 'TeamWidgetController@update',
+        'namespaceController' => 'App\Http\Controllers\Api\V1',
+        'middleware' => [
+            'jwt.verify',
+            'check.access:permissions,widgets.update',
+        ],
+        'constraint' => [
+            'teamId' => '[0-9]+',
+            'id' => '[0-9]+',
+        ],
+    ],
+    [
+        'name' => 'delete_widgets',
+        'method' => 'delete',
+       'path' => '/teams/{teamId}/widgets/{id}',
+        'methodController' => 'TeamWidgetController@destroy',
+        'namespaceController' => 'App\Http\Controllers\Api\V1',
+        'middleware' => [
+            'jwt.verify',
+            'check.access:permissions,widgets.read',
+
+        ],
+         'constraint' => [
+            'id' => '[0-9]+',
+            'teamId' => '[0-9]+',
+        ]
+    ],
+
+
 
     // features
     [
@@ -422,6 +526,18 @@ return [
         ],
         'constraint' => [],
     ],
+
+[
+        'name' => 'teams',
+        'method' => 'get',
+        'path' => '/teams/names',
+        'methodController' => 'TeamController@getNames',
+        'namespaceController' => 'App\Http\Controllers\Api\V1',
+        'middleware' => [
+            'jwt.verify',
+        ],
+        'constraint' => [],
+    ],
     [
         'name' => 'teams',
         'method' => 'get',
@@ -462,6 +578,17 @@ return [
     [
         'name' => 'teams',
         'method' => 'get',
+        'path' => '/teams/{teamId}/info',
+        'methodController' => 'TeamController@showInfoSummary',
+        'namespaceController' => 'App\Http\Controllers\Api\V1',
+        'middleware' => [],
+        'constraint' => [
+            'teamId' => '[0-9]+',
+        ],
+    ],
+    [
+        'name' => 'teams',
+        'method' => 'get',
         'path' => '/teams/{teamId}/summary',
         'methodController' => 'TeamController@showSummary',
         'namespaceController' => 'App\Http\Controllers\Api\V1',
@@ -474,7 +601,35 @@ return [
         'name' => 'teams',
         'method' => 'get',
         'path' => '/teams/{teamId}/info',
-        'methodController' => 'TeamController@info',
+        'methodController' => 'TeamController@showInfoSummary',
+        'namespaceController' => 'App\\Http\\Controllers\\Api\\V1',
+        'middleware' => [],
+        'constraint' => [
+            'teamId' => '[0-9]+',
+        ],
+    ],
+    [
+        'name' => 'teams',
+        'method' => 'get',
+        'path' => '/teams/{teamId}/datasets_cohort_discovery',
+        'methodController' => 'TeamController@showCohortDiscovery',
+        'namespaceController' => 'App\\Http\\Controllers\\Api\\V1',
+        'middleware' => [],
+        'constraint' => [
+            'teamId' => '[0-9]+',
+        ],
+    ],
+    [
+        'name' => 'teams',
+        'method' => 'get',
+        'path' => '/teams/{teamId}/datasets_summary',
+        'methodController' => 'TeamController@showDatasetsSummary',
+        'namespaceController' => 'App\\Http\\Controllers\\Api\\V1',
+        'middleware' => [],
+        'constraint' => [
+            'teamId' => '[0-9]+',
+        ],
+    ],
         'namespaceController' => 'App\Http\Controllers\Api\V1',
         'middleware' => [],
         'constraint' => [
@@ -3725,8 +3880,19 @@ return [
     [
         'name' => 'uploads',
         'method' => 'get',
-        'path' => '/files/processed/{id}',
+        'path' => '/files/processed/{id}/download',
         'methodController' => 'UploadController@content',
+        'namespaceController' => 'App\Http\Controllers\Api\V1',
+        'middleware' => [
+            'jwt.verify',
+        ],
+        'constraint' => [],
+    ],
+    [
+        'name' => 'uploads',
+        'method' => 'delete',
+        'path' => '/files/processed/{id}',
+        'methodController' => 'UploadController@destroy',
         'namespaceController' => 'App\Http\Controllers\Api\V1',
         'middleware' => [
             'jwt.verify',
@@ -4023,7 +4189,18 @@ return [
             'id' => '[0-9]+',
         ],
     ],
-
+    [
+        'name' => 'questions',
+        'method' => 'get',
+        'path' => '/questions/{id}/files/{fileId}',
+        'methodController' => 'QuestionBankController@downloadFile',
+        'namespaceController' => 'App\Http\Controllers\Api\V1',
+        'middleware' => [
+            'jwt.verify',
+            'check.access:permissions,question-bank.read',
+        ],
+        'constraint' => [],
+    ],
     // dar/applications
     [
         'name' => 'dar/applications',
@@ -4191,7 +4368,7 @@ return [
         ],
         'constraint' => [
             'id' => '[0-9]+',
-            'fileId' => '[0-9]+',
+            'fileId' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
             'teamId' => '[0-9]+',
         ],
     ],
@@ -4220,7 +4397,7 @@ return [
         ],
         'constraint' => [
             'id' => '[0-9]+',
-            'fileId' => '[0-9]+',
+            'fileId' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
             'userId' => '[0-9]+',
         ],
     ],
@@ -4383,7 +4560,7 @@ return [
         ],
         'constraint' => [
             'id' => '[0-9]+',
-            'fileId' => '[0-9]+',
+            'fileId' => "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
         ],
     ],
     [
@@ -4397,7 +4574,7 @@ return [
         ],
         'constraint' => [
             'id' => '[0-9]+',
-            'fileId' => '[0-9]+',
+            'fileId' => "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
             'userId' => '[0-9]+',
         ],
     ],
@@ -4460,7 +4637,7 @@ return [
             'id' => '[0-9]+',
             'teamId' => '[0-9]+',
             'reviewId' => '[0-9]+',
-            'fileId' => '[0-9]+',
+            'fileId' => "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
         ],
     ],
     [
@@ -4476,7 +4653,7 @@ return [
             'id' => '[0-9]+',
             'userId' => '[0-9]+',
             'reviewId' => '[0-9]+',
-            'fileId' => '[0-9]+',
+            'fileId' => "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
         ],
     ],
     [
@@ -4621,7 +4798,7 @@ return [
             'id' => '[0-9]+',
             'teamId' => '[0-9]+',
             'reviewId' => '[0-9]+',
-            'fileId' => '[0-9]+',
+            'fileId' => "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
         ],
     ],
 
@@ -4775,7 +4952,7 @@ return [
             'constraint' => [
                 'id' => '[0-9]+',
                 'teamId' => '[0-9]+',
-                'fileId' => '[0-9]+',
+                'fileId' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
             ],
         ]
     ],
